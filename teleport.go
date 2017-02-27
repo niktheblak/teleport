@@ -25,7 +25,7 @@ import (
 	"strings"
 )
 
-var commands = []string{"add", "remove", "rm", "list", "ls"}
+var commands = []string{"help", "add", "remove", "rm", "list", "ls"}
 
 const WarpPointsFile = ".tp"
 
@@ -37,6 +37,9 @@ func main() {
 	cmd := os.Args[1]
 	args := os.Args[2:]
 	switch cmd {
+	case "help", "-h", "--help":
+		printUsage()
+		os.Exit(1)
 	case "add":
 		switch len(args) {
 		case 0:
@@ -104,12 +107,14 @@ func printUsage() {
 	fmt.Println(`Usage: tp {command} [args]
 
 Supported commands are:
-goto [key]
+[key]
 	changes current directory to to the warp point with the given key
+add [key]
+	adds warp point to the current directory
 add [key] [dir]
-	adds warp point to current directory or the specified directory
-remove
-	removes current directory from warp points
+	adds warp point to the specified directory
+remove [key]
+	removes key from warp points
 list
 	lists warp points`)
 }
