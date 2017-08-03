@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// main executable for the teleport command
 package main
 
 import (
@@ -27,7 +29,21 @@ import (
 
 var commands = []string{"help", "add", "remove", "rm", "list", "ls"}
 
-const WarpPointsFile = ".tp"
+var (
+	warpPointsHome     = ""
+	warpPointsFileName = ".tp"
+)
+
+func init() {
+	wpHome, ok := os.LookupEnv("WP_HOME")
+	if ok {
+		warpPointsHome = wpHome
+	}
+	wpFile, ok := os.LookupEnv("WP_FILE")
+	if ok {
+		warpPointsFileName = wpFile
+	}
+}
 
 func main() {
 	if len(os.Args) == 1 {
@@ -135,7 +151,7 @@ func warpTo(target string) error {
 	}
 	dir, ok := wps[target]
 	if !ok {
-		return fmt.Errorf("Warp point %s does not exist", target)
+		return fmt.Errorf("warp point %s does not exist", target)
 	}
 	fmt.Println(dir)
 	return nil
@@ -224,11 +240,14 @@ func saveWarpPoints(warpPoints map[string]string) error {
 }
 
 func warpPointsFile() (string, error) {
+	if warpPointsHome != "" {
+		return fmt.Sprintf("%s/%s", warpPointsHome, warpPointsFileName), nil
+	}
 	u, err := user.Current()
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/%s", u.HomeDir, WarpPointsFile), nil
+	return fmt.Sprintf("%s/%s", u.HomeDir, warpPointsFileName), nil
 }
 
 func readWarpPointsFile(r io.Reader) (map[string]string, error) {
@@ -247,7 +266,7 @@ func readWarpPointsFile(r io.Reader) (map[string]string, error) {
 		}
 		tokens := strings.SplitN(line, "=", 2)
 		if len(tokens) != 2 {
-			return nil, fmt.Errorf("Invalid warp point: %s", line)
+			return nil, fmt.Errorf("invalid warp point: %s", line)
 		}
 		key := strings.TrimSpace(tokens[0])
 		dir := strings.TrimSpace(tokens[1])
