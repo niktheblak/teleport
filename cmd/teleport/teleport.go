@@ -140,7 +140,7 @@ func isCommand(s string) bool {
 	return false
 }
 
-func warpTo(target string) error {
+func warpTo(key string) error {
 	f, err := warpPointsFile()
 	if err != nil {
 		return err
@@ -149,9 +149,9 @@ func warpTo(target string) error {
 	if err != nil {
 		return err
 	}
-	dir, ok := wps[target]
+	dir, ok := wps[key]
 	if !ok {
-		return fmt.Errorf("warp point %s does not exist", target)
+		return fmt.Errorf("warp point %s does not exist", key)
 	}
 	fmt.Println(dir)
 	return nil
