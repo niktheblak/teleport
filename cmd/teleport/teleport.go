@@ -36,7 +36,7 @@ var (
 func main() {
 	if len(os.Args) == 1 {
 		printUsage()
-		os.Exit(1)
+		os.Exit(3)
 	}
 	wpHome, ok := os.LookupEnv("WP_HOME")
 	if ok {
@@ -56,34 +56,34 @@ func main() {
 		switch len(args) {
 		case 0:
 			printUsage()
-			os.Exit(1)
+			os.Exit(3)
 		case 1:
 			key := args[0]
 			if isCommand(key) {
 				fmt.Fprintf(os.Stderr, "%s cannot be used as warp point key\n", key)
-				os.Exit(1)
+				os.Exit(3)
 			}
 			dir, err := os.Getwd()
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
-				os.Exit(2)
+				os.Exit(4)
 			}
 			err = addWarpPoint(key, dir)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
-				os.Exit(2)
+				os.Exit(4)
 			}
 		case 2:
 			key := args[0]
 			if isCommand(key) {
 				fmt.Fprintf(os.Stderr, "%s cannot be used as warp point key\n", key)
-				os.Exit(1)
+				os.Exit(3)
 			}
 			dir := args[1]
 			err := addWarpPoint(key, dir)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
-				os.Exit(2)
+				os.Exit(4)
 			}
 		}
 	case "remove", "rm":
@@ -97,20 +97,20 @@ func main() {
 		}
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			os.Exit(2)
+			os.Exit(4)
 		}
 	case "list", "ls":
 		err := listWarpPoints()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			os.Exit(2)
+			os.Exit(4)
 		}
 	default:
 		target := cmd
 		err := warpTo(target)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			os.Exit(2)
+			os.Exit(4)
 		}
 	}
 }
