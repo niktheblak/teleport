@@ -18,13 +18,12 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"os/user"
 	"sort"
-	"strings"
+
+	"github.com/niktheblak/teleport/pkg/warppoint"
 )
 
 var commands = []string{"help", "add", "remove", "rm", "list", "ls"}
@@ -34,7 +33,11 @@ var (
 	warpPointsFileName = ".tp"
 )
 
-func init() {
+func main() {
+	if len(os.Args) == 1 {
+		printUsage()
+		os.Exit(1)
+	}
 	wpHome, ok := os.LookupEnv("WP_HOME")
 	if ok {
 		warpPointsHome = wpHome
@@ -42,13 +45,6 @@ func init() {
 	wpFile, ok := os.LookupEnv("WP_FILE")
 	if ok {
 		warpPointsFileName = wpFile
-	}
-}
-
-func main() {
-	if len(os.Args) == 1 {
-		printUsage()
-		os.Exit(1)
 	}
 	cmd := os.Args[1]
 	args := os.Args[2:]
@@ -145,7 +141,11 @@ func isCommand(s string) bool {
 }
 
 func warpTo(target string) error {
-	wps, err := loadWarpPoints()
+	f, err := warpPointsFile()
+	if err != nil {
+		return err
+	}
+	wps, err := warppoint.ReadFromFile(f)
 	if err != nil {
 		return err
 	}
@@ -158,16 +158,24 @@ func warpTo(target string) error {
 }
 
 func addWarpPoint(key, dir string) error {
-	wps, err := loadWarpPoints()
+	f, err := warpPointsFile()
+	if err != nil {
+		return err
+	}
+	wps, err := warppoint.ReadFromFile(f)
 	if err != nil {
 		return err
 	}
 	wps[key] = dir
-	return saveWarpPoints(wps)
+	return warppoint.WriteToFile(f, wps)
 }
 
 func listWarpPoints() error {
-	wps, err := loadWarpPoints()
+	f, err := warpPointsFile()
+	if err != nil {
+		return err
+	}
+	wps, err := warppoint.ReadFromFile(f)
 	if err != nil {
 		return err
 	}
@@ -183,12 +191,16 @@ func listWarpPoints() error {
 }
 
 func removeWarpPoint(key string) error {
-	wps, err := loadWarpPoints()
+	f, err := warpPointsFile()
+	if err != nil {
+		return err
+	}
+	wps, err := warppoint.ReadFromFile(f)
 	if err != nil {
 		return err
 	}
 	delete(wps, key)
-	return saveWarpPoints(wps)
+	return warppoint.WriteToFile(f, wps)
 }
 
 func removeCurrentDirWarpPoint() error {
@@ -196,7 +208,11 @@ func removeCurrentDirWarpPoint() error {
 	if err != nil {
 		return err
 	}
-	wps, err := loadWarpPoints()
+	f, err := warpPointsFile()
+	if err != nil {
+		return err
+	}
+	wps, err := warppoint.ReadFromFile(f)
 	if err != nil {
 		return err
 	}
@@ -206,37 +222,7 @@ func removeCurrentDirWarpPoint() error {
 			break
 		}
 	}
-	return saveWarpPoints(wps)
-}
-
-func loadWarpPoints() (map[string]string, error) {
-	fileName, err := warpPointsFile()
-	if err != nil {
-		return nil, err
-	}
-	f, err := os.Open(fileName)
-	switch err.(type) {
-	case *os.PathError:
-		return make(map[string]string), nil
-	case nil:
-	default:
-		return nil, err
-	}
-	defer f.Close()
-	return readWarpPointsFile(f)
-}
-
-func saveWarpPoints(warpPoints map[string]string) error {
-	fileName, err := warpPointsFile()
-	if err != nil {
-		return err
-	}
-	f, err := os.Create(fileName)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	return writeWarpPointsFile(f, warpPoints)
+	return warppoint.WriteToFile(f, wps)
 }
 
 func warpPointsFile() (string, error) {
@@ -248,48 +234,4 @@ func warpPointsFile() (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf("%s/%s", u.HomeDir, warpPointsFileName), nil
-}
-
-func readWarpPointsFile(r io.Reader) (map[string]string, error) {
-	wps := make(map[string]string)
-	scanner := bufio.NewScanner(r)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-		if strings.HasPrefix(line, ";") || strings.HasPrefix(line, "#") {
-			continue
-		}
-		if strings.HasPrefix(line, "[") {
-			continue
-		}
-		tokens := strings.SplitN(line, "=", 2)
-		if len(tokens) != 2 {
-			return nil, fmt.Errorf("invalid warp point: %s", line)
-		}
-		key := strings.TrimSpace(tokens[0])
-		dir := strings.TrimSpace(tokens[1])
-		wps[key] = dir
-	}
-
-	if err := scanner.Err(); err != nil {
-		return wps, err
-	}
-	return wps, nil
-}
-
-func writeWarpPointsFile(w io.Writer, warpPoints map[string]string) error {
-	var keys []string
-	for key := range warpPoints {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	for _, key := range keys {
-		_, err := fmt.Fprintf(w, "%s = %s\n", key, warpPoints[key])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
