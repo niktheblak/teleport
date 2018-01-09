@@ -51,7 +51,7 @@ func main() {
 	switch cmd {
 	case "help", "-h", "--help":
 		printUsage()
-		os.Exit(1)
+		os.Exit(0)
 	case "add":
 		switch len(args) {
 		case 0:
