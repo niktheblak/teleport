@@ -1,6 +1,6 @@
 # teleport
 
-Directory navigation tool for Fish shell.
+Directory navigation tool for *nix shells. Contributions for integrations to different shells welcome!
 
 ## Usage
 
