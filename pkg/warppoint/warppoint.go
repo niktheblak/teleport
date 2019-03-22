@@ -1,12 +1,12 @@
 package warppoint
 
 import (
-	"io"
 	"bufio"
-	"strings"
 	"fmt"
-	"sort"
+	"io"
 	"os"
+	"sort"
+	"strings"
 )
 
 // ReadFromFile reads a collection of warp points from a file
