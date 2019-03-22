@@ -8,12 +8,24 @@ Start by building the `teleport` binary and copying it to your executable path.
 You also need to copy the shell script to Fish shell's (TODO: support for other shells) `functions` directory.
 
 ```shell
-$ go build
+$ go build cmd/teleport/teleport.go
 $ cp teleport ~/bin
-$ cp tp.fish ~/.config/fish/functions/
 ```
 
-Now you can see the available commands with the `teleport` command.
+If you're using Bash shell, load the file `scripts/bash/tp.sh` into your current Bash session
+or do it in your `.profile` file:
+
+```shell
+$ source scripts/bash/tp.sh
+```
+
+If you're using Fish shell, copy the file `scripts/fish/tp.fish` under your Fish functions:
+
+```shell
+$ cp scripts/fish/tp.fish ~/.config/fish/functions/
+```
+
+Now you can see the available commands with the `tp` command.
 
 After this you can create teleport points to your favorite directories with `tp add`.
 
