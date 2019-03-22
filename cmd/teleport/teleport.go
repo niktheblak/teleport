@@ -22,6 +22,7 @@ import (
 	"os"
 	"os/user"
 	"sort"
+	"strings"
 
 	"github.com/niktheblak/teleport/pkg/warppoint"
 )
@@ -29,8 +30,8 @@ import (
 var commands = []string{"help", "add", "remove", "rm", "list", "ls"}
 
 var (
-	warpPointsHome     = ""
-	warpPointsFileName = ".tp"
+	teleportHome     = ""
+	teleportFileName = ".tp"
 )
 
 func main() {
@@ -38,13 +39,13 @@ func main() {
 		printUsage()
 		os.Exit(3)
 	}
-	wpHome, ok := os.LookupEnv("WP_HOME")
+	tpHome, ok := os.LookupEnv("TELEPORT_HOME")
 	if ok {
-		warpPointsHome = wpHome
+		teleportHome = tpHome
 	}
-	wpFile, ok := os.LookupEnv("WP_FILE")
+	tpFile, ok := os.LookupEnv("TELEPORT_FILE")
 	if ok {
-		warpPointsFileName = wpFile
+		teleportFileName = tpFile
 	}
 	cmd := os.Args[1]
 	args := os.Args[2:]
@@ -59,7 +60,7 @@ func main() {
 			os.Exit(3)
 		case 1:
 			key := args[0]
-			if isCommand(key) {
+			if !isValidKey(key) {
 				fmt.Fprintf(os.Stderr, "%s cannot be used as warp point key\n", key)
 				os.Exit(3)
 			}
@@ -75,7 +76,7 @@ func main() {
 			}
 		case 2:
 			key := args[0]
-			if isCommand(key) {
+			if !isValidKey(key) {
 				fmt.Fprintf(os.Stderr, "%s cannot be used as warp point key\n", key)
 				os.Exit(3)
 			}
@@ -129,6 +130,10 @@ remove [key]
 	removes key from warp points
 list
 	lists warp points`)
+}
+
+func isValidKey(key string) bool {
+	return !isCommand(key) && !strings.Contains(key, "=")
 }
 
 func isCommand(s string) bool {
@@ -226,12 +231,12 @@ func removeCurrentDirWarpPoint() error {
 }
 
 func warpPointsFile() (string, error) {
-	if warpPointsHome != "" {
-		return fmt.Sprintf("%s/%s", warpPointsHome, warpPointsFileName), nil
+	if teleportHome != "" {
+		return fmt.Sprintf("%s/%s", teleportHome, teleportFileName), nil
 	}
 	u, err := user.Current()
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/%s", u.HomeDir, warpPointsFileName), nil
+	return fmt.Sprintf("%s/%s", u.HomeDir, teleportFileName), nil
 }
