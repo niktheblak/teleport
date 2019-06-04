@@ -1,9 +1,7 @@
-#!/usr/bin/env bash
-
 function tp () {
-    local args=$1
+    local args=($*)
     local tp_cmd=0
-    case "${args[0]}" in
+    case ${args[1]} in
         add)
             tp_cmd=1
             ;;
@@ -19,11 +17,11 @@ function tp () {
     esac
     if [[ -z "$args" ]]; then
         teleport
-        return
+        return 0
     fi
     if [[ "$tp_cmd" -eq 1 ]]; then
         teleport "$args"
-        return
+        return 0
     fi
     local dir=$(teleport "$args")
     if [[ "$?" -eq 0 ]]; then
