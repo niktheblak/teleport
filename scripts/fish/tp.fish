@@ -1,5 +1,5 @@
 function tp
-    if test -z $argv
+    if test -z "$argv"
         teleport
     else if contains $argv[1] "add" "remove" "rm" "list" "ls" "help"
         teleport $argv
