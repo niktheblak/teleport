@@ -21,10 +21,13 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/niktheblak/teleport/pkg/warppoint"
+	"github.com/urfave/cli"
 )
 
 var commands = []string{"help", "add", "remove", "rm", "list", "ls"}
@@ -35,9 +38,91 @@ var (
 )
 
 func main() {
-	if len(os.Args) == 1 {
-		printUsage()
-		os.Exit(3)
+	app := cli.NewApp()
+	app.Name = "teleport"
+	app.Usage = "Tool for rapidly switching between directories"
+	app.Version = "1.0.0"
+	app.Compiled = time.Now()
+	app.Authors = []cli.Author{
+		{
+			Name:  "Niko Korhonen",
+			Email: "niko@bitnik.fi",
+		},
+	}
+	app.Copyright = "(c) 2018 Niko Korhonen"
+	app.Commands = []cli.Command{
+		{
+			Name:      "add",
+			Aliases:   []string{"a"},
+			Usage:     "adds a warp point to the current directory or to the specified directory",
+			ArgsUsage: "{warp point} [dir]",
+			Action: func(c *cli.Context) error {
+				switch c.NArg() {
+				case 0:
+					return fmt.Errorf("warp point name is required")
+				case 1:
+					key := c.Args().First()
+					if !isValidKey(key) {
+						return fmt.Errorf("%s cannot be used as warp point key\n", key)
+					}
+					dir, err := os.Getwd()
+					if err != nil {
+						return err
+					}
+					err = addWarpPoint(key, dir)
+					if err != nil {
+						return err
+					}
+				case 2:
+					key := c.Args().First()
+					if !isValidKey(key) {
+						return fmt.Errorf("%s cannot be used as warp point key\n", key)
+					}
+					dir, err := filepath.Abs(c.Args().Get(1))
+					if err != nil {
+						return err
+					}
+					err = addWarpPoint(key, dir)
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			},
+		},
+		{
+			Name:      "remove",
+			Aliases:   []string{"rm"},
+			Usage:     "removes warp point pointing to the current directory or the specified warp point",
+			ArgsUsage: "[dir]",
+			Action: func(c *cli.Context) error {
+				switch c.NArg() {
+				case 0:
+					return removeCurrentDirWarpPoint()
+				case 1:
+					key := c.Args().First()
+					return removeWarpPoint(key)
+				}
+				return nil
+			},
+		},
+		{
+			Name:    "list",
+			Aliases: []string{"ls"},
+			Usage:   "lists warp points",
+			Action: func(c *cli.Context) error {
+				return listWarpPoints()
+			},
+		},
+		{
+			Name:      "warp",
+			Aliases:   []string{"w"},
+			Usage:     "teleport to the specified warp point",
+			ArgsUsage: "{warp point}",
+			Action: func(c *cli.Context) error {
+				return warpTo(c.Args().First())
+			},
+		},
 	}
 	tpHome, ok := os.LookupEnv("TELEPORT_HOME")
 	if ok {
@@ -47,89 +132,10 @@ func main() {
 	if ok {
 		teleportFileName = tpFile
 	}
-	cmd := os.Args[1]
-	args := os.Args[2:]
-	switch cmd {
-	case "help", "-h", "--help":
-		printUsage()
-		os.Exit(0)
-	case "add":
-		switch len(args) {
-		case 0:
-			printUsage()
-			os.Exit(3)
-		case 1:
-			key := args[0]
-			if !isValidKey(key) {
-				fmt.Fprintf(os.Stderr, "%s cannot be used as warp point key\n", key)
-				os.Exit(3)
-			}
-			dir, err := os.Getwd()
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(4)
-			}
-			err = addWarpPoint(key, dir)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(4)
-			}
-		case 2:
-			key := args[0]
-			if !isValidKey(key) {
-				fmt.Fprintf(os.Stderr, "%s cannot be used as warp point key\n", key)
-				os.Exit(3)
-			}
-			dir := args[1]
-			err := addWarpPoint(key, dir)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, err)
-				os.Exit(4)
-			}
-		}
-	case "remove", "rm":
-		var err error
-		switch len(args) {
-		case 0:
-			err = removeCurrentDirWarpPoint()
-		case 1:
-			key := args[0]
-			err = removeWarpPoint(key)
-		}
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(4)
-		}
-	case "list", "ls":
-		err := listWarpPoints()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(4)
-		}
-	default:
-		target := cmd
-		err := warpTo(target)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(4)
-		}
+	if err := app.Run(os.Args); err != nil {
+		fmt.Fprint(os.Stderr, err)
+		os.Exit(1)
 	}
-}
-
-func printUsage() {
-	fmt.Println(`Usage: tp {command} [args]
-
-Supported commands are:
-[key]
-	changes current directory to to the warp point with the given key
-add [key]
-	adds warp point to the current directory
-add [key] [dir]
-	adds warp point to the specified directory
-remove [key]
-	removes key from warp points
-list
-	lists warp points`)
 }
 
 func isValidKey(key string) bool {
