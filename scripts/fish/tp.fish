@@ -4,7 +4,7 @@ function tp
     else if contains $argv[1] "add" "remove" "rm" "list" "ls" "help"
         teleport $argv
     else
-        set dir (teleport $argv)
+        set dir (teleport warp $argv)
         if test $status -eq 0
             cd $dir
         end

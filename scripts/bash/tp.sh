@@ -1,7 +1,10 @@
 function tp () {
-    local args=($*)
     local tp_cmd=0
-    case ${args[1]} in
+    if [[ $# -eq 0 ]]; then
+        teleport
+        return 0
+    fi
+    case $1 in
         add)
             tp_cmd=1
             ;;
@@ -15,15 +18,11 @@ function tp () {
             tp_cmd=1
             ;;
     esac
-    if [[ -z "$args" ]]; then
-        teleport
-        return 0
-    fi
     if [[ "$tp_cmd" -eq 1 ]]; then
-        teleport "$args"
+        teleport "$@"
         return 0
     fi
-    local dir=$(teleport "$args")
+    local dir=$(teleport warp "$1")
     if [[ "$?" -eq 0 ]]; then
         cd "$dir"
     fi
