@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+var commentPrefixes = []string{
+	";",
+	"#",
+	"[",
+}
+
 // ReadFromFile reads a collection of warp points from a file
 func ReadFromFile(fileName string) (map[string]string, error) {
 	f, err := os.Open(fileName)
@@ -44,13 +50,7 @@ func Read(r io.Reader) (map[string]string, error) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-		if strings.HasPrefix(line, ";") || strings.HasPrefix(line, "#") {
-			continue
-		}
-		if strings.HasPrefix(line, "[") {
+		if line == "" || isComment(line) {
 			continue
 		}
 		tokens := strings.SplitN(line, "=", 2)
@@ -81,4 +81,13 @@ func Write(w io.Writer, warpPoints map[string]string) error {
 		}
 	}
 	return nil
+}
+
+func isComment(line string) bool {
+	for _, p := range commentPrefixes {
+		if strings.HasPrefix(line, p) {
+			return true
+		}
+	}
+	return false
 }
