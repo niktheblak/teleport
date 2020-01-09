@@ -25,6 +25,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/niktheblak/teleport/pkg/warppoint"
 	"github.com/urfave/cli"
@@ -61,7 +62,7 @@ func main() {
 				case 0:
 					return fmt.Errorf("warp point name is required")
 				case 1:
-					key := c.Args().First()
+					key := strings.TrimSpace(c.Args().First())
 					if !isValidKey(key) {
 						return fmt.Errorf("%s cannot be used as warp point key\n", key)
 					}
@@ -74,7 +75,7 @@ func main() {
 						return err
 					}
 				case 2:
-					key := c.Args().First()
+					key := strings.TrimSpace(c.Args().First())
 					if !isValidKey(key) {
 						return fmt.Errorf("%s cannot be used as warp point key\n", key)
 					}
@@ -139,7 +140,15 @@ func main() {
 }
 
 func isValidKey(key string) bool {
-	return !isCommand(key) && !strings.Contains(key, "=")
+	if isCommand(key) || strings.Contains(key, "=") {
+		return false
+	}
+	for _, r := range key {
+		if unicode.IsSpace(r) || !unicode.IsPrint(r) {
+			return false
+		}
+	}
+	return true
 }
 
 func isCommand(s string) bool {
