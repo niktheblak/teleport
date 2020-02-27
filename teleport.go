@@ -31,8 +31,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-var commands = []string{"help", "add", "remove", "rm", "list", "ls"}
-
 var (
 	teleportHome     = ""
 	teleportFileName = ".tp"
@@ -63,7 +61,7 @@ func main() {
 					return fmt.Errorf("warp point name is required")
 				case 1:
 					key := strings.TrimSpace(c.Args().First())
-					if !isValidKey(key) {
+					if !isValidKey(app, key) {
 						return fmt.Errorf("%s cannot be used as warp point key\n", key)
 					}
 					dir, err := os.Getwd()
@@ -76,7 +74,7 @@ func main() {
 					}
 				case 2:
 					key := strings.TrimSpace(c.Args().First())
-					if !isValidKey(key) {
+					if !isValidKey(app, key) {
 						return fmt.Errorf("%s cannot be used as warp point key\n", key)
 					}
 					dir, err := filepath.Abs(c.Args().Get(1))
@@ -139,8 +137,8 @@ func main() {
 	}
 }
 
-func isValidKey(key string) bool {
-	if isCommand(key) || strings.Contains(key, "=") {
+func isValidKey(app *cli.App, key string) bool {
+	if isCommand(app, key) || strings.Contains(key, "=") {
 		return false
 	}
 	for _, r := range key {
@@ -151,10 +149,15 @@ func isValidKey(key string) bool {
 	return true
 }
 
-func isCommand(s string) bool {
-	for _, c := range commands {
-		if s == c {
+func isCommand(app *cli.App, s string) bool {
+	for _, c := range app.Commands {
+		if s == c.Name {
 			return true
+		}
+		for _, a := range c.Aliases {
+			if s == a {
+				return true
+			}
 		}
 	}
 	return false
