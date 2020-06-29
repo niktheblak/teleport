@@ -268,8 +268,12 @@ func prune() error {
 	for wp, path := range wps {
 		target, err := os.Open(path)
 		if err != nil {
-			pruned = append(pruned, wp)
-			continue
+			if os.IsNotExist(err) {
+				pruned = append(pruned, wp)
+				continue
+			} else {
+				return err
+			}
 		}
 		info, err := target.Stat()
 		if err != nil {
