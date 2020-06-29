@@ -114,6 +114,13 @@ func main() {
 			},
 		},
 		{
+			Name:  "prune",
+			Usage: "removes warp points whose target directory no longer exist",
+			Action: func(c *cli.Context) error {
+				return prune()
+			},
+		},
+		{
 			Name:      "warp",
 			Aliases:   []string{"w"},
 			Usage:     "teleport to the specified warp point",
@@ -244,6 +251,39 @@ func removeCurrentDirWarpPoint() error {
 			delete(wps, key)
 			break
 		}
+	}
+	return warppoint.WriteToFile(f, wps)
+}
+
+func prune() error {
+	f, err := warpPointsFile()
+	if err != nil {
+		return err
+	}
+	wps, err := warppoint.ReadFromFile(f)
+	if err != nil {
+		return err
+	}
+	var pruned []string
+	for wp, path := range wps {
+		target, err := os.Open(path)
+		if err != nil {
+			pruned = append(pruned, wp)
+			continue
+		}
+		info, err := target.Stat()
+		if err != nil {
+			pruned = append(pruned, wp)
+			continue
+		}
+		if !info.IsDir() {
+			pruned = append(pruned, wp)
+			continue
+		}
+	}
+	for _, wp := range pruned {
+		fmt.Printf("Removing warp point %s to %s\n", wp, wps[wp])
+		delete(wps, wp)
 	}
 	return warppoint.WriteToFile(f, wps)
 }

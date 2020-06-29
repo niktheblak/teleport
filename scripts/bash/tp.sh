@@ -14,6 +14,9 @@ function tp () {
         list|ls)
             tp_cmd=1
             ;;
+        prune)
+            tp_cmd=1
+            ;;
         help)
             tp_cmd=1
             ;;

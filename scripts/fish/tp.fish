@@ -1,7 +1,7 @@
 function tp
     if test -z "$argv"
         teleport
-    else if contains $argv[1] "add" "remove" "rm" "list" "ls" "help"
+    else if contains $argv[1] "add" "remove" "rm" "list" "ls" "prune" "help"
         teleport $argv
     else
         set dir (teleport warp $argv)
