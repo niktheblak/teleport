@@ -28,7 +28,7 @@ import (
 	"unicode"
 
 	"github.com/niktheblak/teleport/pkg/warppoint"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 var (
@@ -42,14 +42,14 @@ func main() {
 	app.Usage = "Tool for rapidly switching between directories"
 	app.Version = "1.0.0"
 	app.Compiled = time.Now()
-	app.Authors = []cli.Author{
+	app.Authors = []*cli.Author{
 		{
 			Name:  "Niko Korhonen",
 			Email: "niko@bitnik.fi",
 		},
 	}
 	app.Copyright = "(c) 2018 Niko Korhonen"
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:      "add",
 			Aliases:   []string{"a"},
