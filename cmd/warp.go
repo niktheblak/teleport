@@ -27,7 +27,7 @@ var warpCmd = &cobra.Command{
 		if !ok {
 			return fmt.Errorf("warp point %s does not exist", key)
 		}
-		cmd.Println(dir)
+		fmt.Println(dir)
 		return nil
 	},
 }
