@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -32,9 +31,8 @@ var listCmd = &cobra.Command{
 			}
 		}
 		sort.Strings(sorted)
-		format := fmt.Sprintf("%%-%ds %%s\n", maxLen)
 		for _, wp := range sorted {
-			cmd.Printf(format, wp, wps[wp])
+			cmd.Printf("%-*s %s\n", maxLen, wp, wps[wp])
 		}
 		return nil
 	},
