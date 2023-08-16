@@ -1,6 +1,8 @@
 module github.com/niktheblak/teleport
 
-go 1.20
+go 1.21
+
+toolchain go1.21.0
 
 require github.com/spf13/cobra v1.7.0
 
