@@ -1,9 +1,11 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"os/user"
+	"path"
+	"slices"
+	"sort"
 	"strings"
 	"unicode"
 
@@ -32,23 +34,20 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
 func isCommand(cmd *cobra.Command, s string) bool {
-	for _, c := range cmd.Commands() {
+	return slices.ContainsFunc(cmd.Commands(), func(c *cobra.Command) bool {
 		if s == c.Name() {
 			return true
 		}
-		for _, a := range c.Aliases {
-			if s == a {
-				return true
-			}
+		if slices.Contains(c.Aliases, s) {
+			return true
 		}
-	}
-	return false
+		return false
+	})
 }
 
 func isValidKey(cmd *cobra.Command, key string) bool {
@@ -65,11 +64,24 @@ func isValidKey(cmd *cobra.Command, key string) bool {
 
 func warpPointsFile() (string, error) {
 	if teleportHome != "" {
-		return fmt.Sprintf("%s/%s", teleportHome, teleportFileName), nil
+		return path.Join(teleportHome, teleportFileName), nil
 	}
 	u, err := user.Current()
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s/%s", u.HomeDir, teleportFileName), nil
+	return path.Join(u.HomeDir, teleportFileName), nil
+}
+
+func keysAndMaxLen(wps map[string]string) ([]string, int) {
+	var maxLen int
+	var sorted []string
+	for key := range wps {
+		sorted = append(sorted, key)
+		if len(key) > maxLen {
+			maxLen = len(key)
+		}
+	}
+	sort.Strings(sorted)
+	return sorted, maxLen
 }

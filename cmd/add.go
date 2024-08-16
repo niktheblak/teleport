@@ -19,7 +19,7 @@ var addCmd = &cobra.Command{
 		switch len(args) {
 		case 1:
 			key := strings.TrimSpace(args[0])
-			if !isValidKey(cmd, key) {
+			if !isValidKey(cmd.Root(), key) {
 				return fmt.Errorf("%s cannot be used as warp point key", key)
 			}
 			dir, err := os.Getwd()
@@ -32,7 +32,7 @@ var addCmd = &cobra.Command{
 			}
 		case 2:
 			key := strings.TrimSpace(args[0])
-			if !isValidKey(cmd, key) {
+			if !isValidKey(cmd.Root(), key) {
 				return fmt.Errorf("%s cannot be used as warp point key", key)
 			}
 			dir, err := filepath.Abs(args[1])

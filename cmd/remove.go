@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"maps"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -38,12 +39,9 @@ func removeCurrentDirWarpPoint() error {
 	if err != nil {
 		return err
 	}
-	for key, val := range wps {
-		if val == dir {
-			delete(wps, key)
-			break
-		}
-	}
+	maps.DeleteFunc(wps, func(key string, val string) bool {
+		return val == dir
+	})
 	return warppoint.WriteToFile(f, wps)
 }
 

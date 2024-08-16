@@ -4,8 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"maps"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -18,13 +19,10 @@ var commentPrefixes = []string{
 // ReadFromFile reads a collection of warp points from a file
 func ReadFromFile(fileName string) (map[string]string, error) {
 	f, err := os.Open(fileName)
-	switch err.(type) {
-	case *os.PathError:
-		// File does not exist, meaning there aren't any stored warp points.
-		// Return an empty map.
+	if os.IsNotExist(err) {
 		return make(map[string]string), nil
-	case nil:
-	default:
+	}
+	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
@@ -68,13 +66,7 @@ func Read(r io.Reader) (map[string]string, error) {
 // Write writes a collection of warp points to an io.Writer.
 // Warp points are written one per line, sorted alphabetically by key
 func Write(w io.Writer, warpPoints map[string]string) error {
-	var keys []string
-	for key := range warpPoints {
-		keys = append(keys, key)
-	}
-	// Always write warp points sorted by key
-	sort.Strings(keys)
-	for _, key := range keys {
+	for _, key := range slices.Sorted(maps.Keys(warpPoints)) {
 		_, err := fmt.Fprintf(w, "%s = %s\n", key, warpPoints[key])
 		if err != nil {
 			return err

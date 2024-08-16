@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"sort"
-
 	"github.com/spf13/cobra"
 
 	"github.com/niktheblak/teleport/pkg/warppoint"
@@ -22,16 +20,8 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		var maxLen int
-		var sorted []string
-		for key := range wps {
-			sorted = append(sorted, key)
-			if len(key) > maxLen {
-				maxLen = len(key)
-			}
-		}
-		sort.Strings(sorted)
-		for _, wp := range sorted {
+		keys, maxLen := keysAndMaxLen(wps)
+		for _, wp := range keys {
 			cmd.Printf("%-*s %s\n", maxLen, wp, wps[wp])
 		}
 		return nil
