@@ -2,6 +2,7 @@ package warppoint
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -25,8 +26,11 @@ func ReadFromFile(fileName string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-	return Read(f)
+	wps, err := Read(f)
+	if err != nil {
+		return nil, errors.Join(err, f.Close())
+	}
+	return wps, f.Close()
 }
 
 // WriteToFile writes a collection of warp points to a file
@@ -35,8 +39,10 @@ func WriteToFile(fileName string, warpPoints map[string]string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	return Write(f, warpPoints)
+	if err := Write(f, warpPoints); err != nil {
+		return errors.Join(err, f.Close())
+	}
+	return f.Close()
 }
 
 // Read reads a collection of warp points from an io.Reader.
