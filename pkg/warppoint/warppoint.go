@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"maps"
 	"os"
 	"slices"
@@ -20,7 +21,7 @@ var commentPrefixes = []string{
 // ReadFromFile reads a collection of warp points from a file
 func ReadFromFile(fileName string) (map[string]string, error) {
 	f, err := os.Open(fileName)
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		return make(map[string]string), nil
 	}
 	if err != nil {

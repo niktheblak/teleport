@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -25,7 +27,7 @@ var pruneCmd = &cobra.Command{
 		for wp, path := range wps {
 			target, err := os.Open(path)
 			if err != nil {
-				if os.IsNotExist(err) {
+				if errors.Is(err, fs.ErrNotExist) {
 					pruned = append(pruned, wp)
 					continue
 				} else {
